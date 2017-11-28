@@ -17,15 +17,12 @@ WORKDIR /data
 CMD ["/usr/local/sbin/kresd"]
 
 # Install dependencies and sources
-RUN \
-apk --update add ${RUN_PKGS} && \
-apk add --virtual build-dep ${BUILD_PKGS} && \
-git clone --depth 1 --recurse-submodules=modules/policy/lua-aho-corasick \
-https://gitlab.labs.nic.cz/knot/knot-resolver.git /tmp/build && \
-cd /tmp/build && \
-./scripts/bootstrap-depends.sh /usr/local && \
-make -j4 install && \
-# Trim down the image
-cd / && \
-apk del --purge build-dep && \
-rm -rf /var/cache/apk/* /tmp/build
+RUN apk --update add ${RUN_PKGS}
+RUN apk add --virtual build-dep ${BUILD_PKGS}
+RUN git clone --depth 1 --recurse-submodules --branch docker-fix https://gitlab.labs.nic.cz/knot/knot-resolver.git /tmp/build
+WORKDIR /tmp/build
+RUN ./scripts/bootstrap-depends.sh /usr/local
+RUN make -j4 install
+WORKDIR /
+RUN apk del --purge build-dep
+RUN rm -rf /var/cache/apk/* /tmp/build

@@ -88,7 +88,7 @@ trap on_failure ERR
 
 function fetch_pkg {
 	if [ "${2##*.}" == git ]; then
-		[ ! -e $1 ] && git clone "$2" $1 &> /dev/null
+		[ ! -e $1 ] && git clone --depth=1 --shallow-submodules "$2" $1 &> /dev/null
 		cd $1; git checkout $3 &> /dev/null; cd -
 	else
 		[ ! -f $1.tar.${2##*.} ] && curl -L "$2" > $1.tar.${2##*.}
@@ -122,7 +122,7 @@ function pkg {
 		fetch_pkg "$1-$3" "$2" $3 >> ${LOG}
 		echo "[x] building $1-$3"
 		shift 4
-		(build_pkg $*) >> ${LOG} 2>&1
+		(build_pkg $*) 2>&1 | tee ${LOG}
 	fi
 }
 
